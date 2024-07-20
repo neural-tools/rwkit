@@ -12,7 +12,7 @@ from .common import (
 )
 from .docx import read_docx, write_docx
 from .json import read_json, read_jsonl, write_json, write_jsonl
-from .text import read_text, write_text
+from .text import read_lines, read_text, write_lines, write_text
 from .yaml import read_yaml, write_yaml
 
 
@@ -137,7 +137,7 @@ def write(
             extension. Defaults to 'infer'.
 
     Raises:
-        ValueError: If `file_type` is not supported.
+        ValueError: If `file_type` is not supported (see SUPPORTED_FILE_TYPES).
     """
     if file_type == "infer":
         file_type = _infer_file_type_from_filename(filename)
