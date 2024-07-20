@@ -10,64 +10,6 @@ from typing import Any, Generator, Iterator, List, Optional, Union
 from .common import open_file
 
 
-def _read_lines_generator(
-    filename: Union[str, Path],
-    mode: str = "r",
-    compression: Optional[str] = "infer",
-    chunksize: int = 1,
-) -> Generator[List[str], Any, None]:
-    """
-    Generator function for reading a text file line-by-line in chunks.
-
-    Args:
-        filename (Union[str, Path]): File to read.
-        mode (str, optional): File access mode. Valid modes start with 'r'. Defaults
-            to 'r'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
-        chunksize (int, optional): The number of lines to read at once. Defaults to 1.
-
-    Raises:
-        ValueError: If `mode` does not start with 'r'.
-        ValueError: If `chunksize` is not 1 or greater.
-
-    Yields:
-        Generator[List[str], Any, None]: A list of lines from the file.
-    """
-    # Checks
-    if not mode[0].startswith("r"):
-        raise ValueError("Unrecognized mode: %s\nValid modes start with: 'r'" % mode)
-
-    if not (chunksize >= 1):
-        raise ValueError("chunksize must be 1 or greater")
-
-    with open_file(filename, mode, compression) as (_, file_handle, is_binary):
-        chunk: List[str] = []
-        counter = 0
-        for line in file_handle:
-            if is_binary:
-                line = line.decode()
-
-            chunk.append(line.rstrip("\n"))
-            counter += 1
-
-            # Once `chunksize` is reached, yield `chunk`
-            if counter == chunksize:
-                yield chunk
-
-                # Empty list, reset counter
-                chunk = []
-                counter = 0
-
-        # If `chunk` contains items after all lines have been read, yield it
-        if counter > 0:
-            yield chunk
-
-
 def read_text(
     filename: Union[str, Path],
     mode: str = "r",
@@ -164,6 +106,64 @@ def write_text(
             container_handle.addfile(file_handle, fileobj=BytesIO(content))
         else:
             file_handle.write(content)
+
+
+def _read_lines_generator(
+    filename: Union[str, Path],
+    mode: str = "r",
+    compression: Optional[str] = "infer",
+    chunksize: int = 1,
+) -> Generator[List[str], Any, None]:
+    """
+    Generator function for reading a text file line-by-line in chunks.
+
+    Args:
+        filename (Union[str, Path]): File to read.
+        mode (str, optional): File access mode. Valid modes start with 'r'. Defaults
+            to 'r'.
+        compression (Optional[str], optional): File compression. Valid options are
+            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
+            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
+            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
+            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
+            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
+        chunksize (int, optional): The number of lines to read at once. Defaults to 1.
+
+    Raises:
+        ValueError: If `mode` does not start with 'r'.
+        ValueError: If `chunksize` is not 1 or greater.
+
+    Yields:
+        Generator[List[str], Any, None]: A list of lines from the file.
+    """
+    # Checks
+    if not mode[0].startswith("r"):
+        raise ValueError("Unrecognized mode: %s\nValid modes start with: 'r'" % mode)
+
+    if not (chunksize >= 1):
+        raise ValueError("chunksize must be 1 or greater")
+
+    with open_file(filename, mode, compression) as (_, file_handle, is_binary):
+        chunk: List[str] = []
+        counter = 0
+        for line in file_handle:
+            if is_binary:
+                line = line.decode()
+
+            chunk.append(line.rstrip("\n"))
+            counter += 1
+
+            # Once `chunksize` is reached, yield `chunk`
+            if counter == chunksize:
+                yield chunk
+
+                # Empty list, reset counter
+                chunk = []
+                counter = 0
+
+        # If `chunk` contains items after all lines have been read, yield it
+        if counter > 0:
+            yield chunk
 
 
 def read_lines(
