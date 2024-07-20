@@ -431,7 +431,10 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 [package.extras]
 cffi = ["cffi (>=1.11)"]
 
+[extras]
+compress = ["python-docx", "pyyaml", "zstandard"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "3cee40e50cd24c90a233fa616515e26f0edc33b6cde121f4559b7e2a20ba9c9d"
+content-hash = "58d69c4539a36d584f2737db41bf9d7305d67498aac28ad5fbc234f1a0ebcb71"
