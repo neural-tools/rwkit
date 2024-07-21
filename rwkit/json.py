@@ -111,14 +111,10 @@ def read_json(
         raise ValueError("Unrecognized mode: %s\nValid modes start with: r" % mode)
 
     if chunksize is None:
-        with open_file(filename, mode, compression) as (
-            _,
-            file_handle,
-            is_content_binary,
-        ):
+        with open_file(filename, mode, compression) as (_, file_handle, is_binary):
             content = file_handle.read()
 
-            if is_content_binary:
+            if is_binary:
                 content = content.decode()
 
             if lines:
@@ -126,7 +122,7 @@ def read_json(
             return json.loads(content)
     else:
         if not lines:
-            raise ValueError("chunksize only valid with lines=True")
+            raise ValueError("Specifying chunksize is only valid when lines=True")
         return _read_jsonl_generator(filename, mode, compression, chunksize)
 
 
@@ -171,7 +167,7 @@ def write_json(
     with open_file(filename, mode, compression, level) as (
         container_handle,
         file_handle,
-        is_content_binary,
+        is_binary,
     ):
         if lines:
             if isinstance(object, list):
@@ -182,7 +178,7 @@ def write_json(
         else:
             content = json.dumps(object) + "\n"
 
-        if is_content_binary:
+        if is_binary:
             content = content.encode()
 
         # Write out
@@ -215,18 +211,11 @@ def read_jsonl(
             at once. If integer, reads the file in chunks of `chunksize`. Defaults to
             None.
 
-    Raises:
-        ValueError: If `mode` does not start with 'r'.
-
     Returns:
         List[Any]: If `chunksize` is None, returns a list of JSON objects. If
             `chunksize` is an integer, returns a generator that yields lists of JSON
             objects in chunks of `chunksize`.
     """
-    # Check mode
-    if not mode[0].startswith("r"):
-        raise ValueError("Unrecognized mode: %s\nValid modes start with: r" % mode)
-
     return read_json(filename, mode, compression, lines=True, chunksize=chunksize)
 
 
