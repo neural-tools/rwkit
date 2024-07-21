@@ -10,13 +10,13 @@ from typing import Any, Generator, Iterator, List, Optional, Union
 from .common import open_file
 
 
-def read_text(
+def _read_file_content(
     filename: Union[str, Path],
     mode: str = "r",
     compression: Optional[str] = "infer",
-) -> str:
+) -> Union[str, bytes]:
     """
-    Read text file and return content as a single string.
+    Common function to read file content.
 
     Args:
         filename (Union[str, Path]): File to read.
@@ -28,16 +28,14 @@ def read_text(
             `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
             '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
             and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
-        chunksize (Optional[int], optional): If None, reads all lines at once. If
-            integer, reads the file in chunks of `chunksize` lines. Defaults to None.
 
     Raises:
         ValueError: If `mode` does not start with 'r'.
 
     Returns:
-        str: Content of file.
+        Union[str, bytes]: Content of file as string or bytes.
     """
-    # Check
+    # Check mode
     if not mode[0].startswith("r"):
         raise ValueError("Unrecognized mode: %s\nValid modes start with: 'r'" % mode)
 
@@ -48,64 +46,6 @@ def read_text(
             return content.decode()
 
         return content
-
-
-def write_text(
-    filename: Union[str, Path],
-    text: str,
-    mode: str = "w",
-    compression: Optional[str] = "infer",
-    level: Optional[int] = None,
-) -> None:
-    """
-    Write text to a file.
-
-    Args:
-        filename (Union[str, Path]): File to write to.
-        text (str): String to write.
-        mode (str, optional): File access mode. Valid modes start with 'w', 'x', or 'a'.
-            Defaults to 'w'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to 'infer'.
-        level (Optional[int], optional): Compression level. Only in effect if
-            `compression` is not None. If `level` is None, each compression method's
-            default will be used. Defaults to None.
-
-    Raises:
-        TypeError: If `text` is not a string.
-        ValueError: If `mode` does not start with 'w', 'x', or 'a'.
-    """
-    # Checks
-    if isinstance(text, str):
-        pass
-    else:
-        raise TypeError("text must be a string. Use write_lines() for list of strings.")
-
-    valid_modes = ("w", "x", "a")
-    if mode[0] not in valid_modes:
-        raise ValueError(
-            "Unrecognized mode: %s\nValid modes start with: %s" % (mode, valid_modes)
-        )
-
-    with open_file(filename, mode, compression, level) as (
-        container_handle,
-        file_handle,
-        is_content_binary,
-    ):
-        # Write out
-        content = text
-        if is_content_binary:
-            content = content.encode()
-
-        if isinstance(file_handle, tarfile.TarInfo):
-            file_handle.size = len(content)
-            container_handle.addfile(file_handle, fileobj=BytesIO(content))
-        else:
-            file_handle.write(content)
 
 
 def _read_lines_generator(
@@ -166,6 +106,79 @@ def _read_lines_generator(
             yield chunk
 
 
+def _write_file_content(
+    filename: Union[str, Path],
+    content: str,
+    mode: str = "w",
+    compression: Optional[str] = "infer",
+    level: Optional[int] = None,
+) -> None:
+    """
+    Common function to write content to a file.
+
+    Args:
+        filename (Union[str, Path]): File to write to.
+        content (str): Content to write.
+        mode (str, optional): File access mode. Valid modes start with 'w', 'x', or 'a'.
+            Defaults to 'w'.
+        compression (Optional[str], optional): File compression. Valid options are
+            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
+            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
+            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
+            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
+            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to 'infer'.
+        level (Optional[int], optional): Compression level. Only in effect if
+            `compression` is not None. If `level` is None, each compression method's
+            default will be used. Defaults to None.
+    """
+    valid_modes = ("w", "x", "a")
+    if mode[0] not in valid_modes:
+        raise ValueError(
+            f"Unrecognized mode: {mode}\nValid modes start with: {valid_modes}"
+        )
+
+    with open_file(filename, mode, compression, level) as (
+        container_handle,
+        file_handle,
+        is_binary,
+    ):
+        if is_binary:
+            content = content.encode()
+
+        if isinstance(file_handle, tarfile.TarInfo):
+            file_handle.size = len(content)
+            container_handle.addfile(file_handle, fileobj=BytesIO(content))
+        else:
+            file_handle.write(content)
+
+
+def read_text(
+    filename: Union[str, Path],
+    mode: str = "r",
+    compression: Optional[str] = "infer",
+) -> str:
+    """
+    Read text file and return content as a single string.
+
+    Args:
+        filename (Union[str, Path]): File to read.
+        mode (str, optional): File access mode. Valid modes start with 'r'. Defaults
+            to 'r'.
+        compression (Optional[str], optional): File compression. Valid options are
+            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
+            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
+            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
+            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
+            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
+        chunksize (Optional[int], optional): If None, reads all lines at once. If
+            integer, reads the file in chunks of `chunksize` lines. Defaults to None.
+
+    Returns:
+        str: Content of file.
+    """
+    return _read_file_content(filename, mode, compression)
+
+
 def read_lines(
     filename: Union[str, Path],
     mode: str = "r",
@@ -192,20 +205,45 @@ def read_lines(
             an integer, returns a generator that yields lists of strings in chunks of
             `chunksize`.
     """
-    # Check mode
-    if not mode[0].startswith("r"):
-        raise ValueError("Unrecognized mode: %s\nValid modes start with: r" % mode)
-
     if chunksize is None:
-        with open_file(filename, mode, compression) as (_, file_handle, is_binary):
-            content = file_handle.read()
-
-            if is_binary:
-                content = content.decode()
-
-            return content.rstrip("\n").split("\n")
+        return _read_file_content(filename, mode, compression).rstrip("\n").split("\n")
 
     return _read_lines_generator(filename, mode, compression, chunksize)
+
+
+def write_text(
+    filename: Union[str, Path],
+    text: str,
+    mode: str = "w",
+    compression: Optional[str] = "infer",
+    level: Optional[int] = None,
+) -> None:
+    """
+    Write text to a file.
+
+    Args:
+        filename (Union[str, Path]): File to write to.
+        text (str): String to write.
+        mode (str, optional): File access mode. Valid modes start with 'w', 'x', or 'a'.
+            Defaults to 'w'.
+        compression (Optional[str], optional): File compression. Valid options are
+            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
+            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
+            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
+            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
+            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to 'infer'.
+        level (Optional[int], optional): Compression level. Only in effect if
+            `compression` is not None. If `level` is None, each compression method's
+            default will be used. Defaults to None.
+
+    Raises:
+        TypeError: If `text` is not a string.
+    """
+    # Checks
+    if not isinstance(text, str):
+        raise TypeError("text must be a string. Use write_lines() for list of strings.")
+
+    _write_file_content(filename, text, mode, compression, level)
 
 
 def write_lines(
@@ -216,7 +254,7 @@ def write_lines(
     level: Optional[int] = None,
 ) -> None:
     """
-    Write string or list of strings to a file, each on a new line.
+    Write string or list of strings to a file with trailing newlines.
 
     Args:
         filename (Union[str, Path]): File to write to.
@@ -236,7 +274,6 @@ def write_lines(
     Raises:
         TypeError: If `lines` is not a string or list of strings.
         TypeError: If `lines` is a list with non-string elements.
-        ValueError: If `mode` does not start with 'w', 'x', or 'a'.
     """
     # Checks
     if isinstance(lines, str):
@@ -255,24 +292,5 @@ def write_lines(
             "lines must be a string or list of strings, got %s" % type(lines).__name__
         )
 
-    valid_modes = ("w", "x", "a")
-    if mode[0] not in valid_modes:
-        raise ValueError(
-            "Unrecognized mode: %s\nValid modes start with: %s" % (mode, valid_modes)
-        )
-
-    with open_file(filename, mode, compression, level) as (
-        container_handle,
-        file_handle,
-        is_content_binary,
-    ):
-        # Write out, add trailing newline
-        content = "\n".join(lines) + "\n"
-        if is_content_binary:
-            content = content.encode()
-
-        if isinstance(file_handle, tarfile.TarInfo):
-            file_handle.size = len(content)
-            container_handle.addfile(file_handle, fileobj=BytesIO(content))
-        else:
-            file_handle.write(content)
+    content = "\n".join(lines) + "\n"
+    _write_file_content(filename, content, mode, compression, level)
