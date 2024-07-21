@@ -14,6 +14,9 @@ python-docx = {version = "^1.1.2", optional = true}
 [tool.poetry.extras]
 compress = ["zstandard", "pyyaml", "python-docx"]
 
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
