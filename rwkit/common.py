@@ -152,9 +152,8 @@ def open_file(
         container_handle = tarfile.open(filename, **kwargs)
         try:
             if mode[0] == "r":
-                if filepath.is_file():
-                    if not tarfile.is_tarfile(filename):
-                        raise tarfile.ReadError(filename)
+                if filepath.is_file() and not tarfile.is_tarfile(filename):
+                    raise tarfile.ReadError(filename)
 
                 file_list = container_handle.getnames()
                 if len(file_list) != 1:
@@ -194,9 +193,8 @@ def open_file(
         container_handle = zipfile.ZipFile(filename, **kwargs)
         try:
             if mode == "r":
-                if filepath.is_file():
-                    if not zipfile.is_zipfile(filename):
-                        raise zipfile.BadZipFile(filename)
+                if filepath.is_file() and not zipfile.is_zipfile(filename):
+                    raise zipfile.BadZipFile(filename)
 
                 file_list = container_handle.namelist()
                 if len(file_list) != 1:
