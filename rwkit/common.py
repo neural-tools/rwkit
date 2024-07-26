@@ -4,7 +4,6 @@ Common functions
 
 import bz2
 import gzip
-import logging
 import lzma
 import tarfile
 import zipfile
@@ -45,8 +44,6 @@ try:
 except ImportError:
     _HAVE_ZSTD = False
 
-logger = logging.getLogger(__name__)
-
 
 @contextmanager
 def open_file(
@@ -72,8 +69,8 @@ def open_file(
             used. Defaults to None.
 
     Yields:
-        Iterator[Tuple[Optional[IO], IO, bool]]: Container handle, file handle,
-            and boolean indicating if file content is binary.
+        Iterator[Tuple[Any, IO, bool]]: Container handle, file handle, and boolean
+            indicating if file content is binary.
 
     Raises:
         IsADirectoryError: If `filename` is a directory.
