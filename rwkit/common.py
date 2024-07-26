@@ -54,7 +54,7 @@ def open_file(
     mode: str,
     compression: Optional[str] = None,
     level: Optional[int] = None,
-) -> Iterator[Tuple[Optional[IO], IO, bool]]:
+) -> Iterator[Tuple[Any, IO, bool]]:
     """
     Create file handle for reading or writing, optionally with compression.
 
