@@ -194,7 +194,7 @@ def open_file(
         container_handle = zipfile.ZipFile(filename, **kwargs)
         try:
             if mode == "r":
-                if filepath.is_file:
+                if filepath.is_file():
                     if not zipfile.is_zipfile(filename):
                         raise zipfile.BadZipFile(filename)
 
