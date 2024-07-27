@@ -64,8 +64,8 @@ def open_file(
             `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
             '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
             and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to None.
-        level (Optional[int]): Compression level. Only in effect if `compression` is
-            not None. If `level` is None, each compression method's default will be
+        level (Optional[int], optional): Compression level. Only in effect if `compression`
+            is not None. If `level` is None, each compression method's default will be
             used. Defaults to None.
 
     Yields:
