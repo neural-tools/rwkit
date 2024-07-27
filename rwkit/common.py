@@ -9,7 +9,7 @@ import tarfile
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import IO, Any, Dict, Iterator, Optional, Tuple, Union
+from typing import IO, Any, Dict, Iterator, Optional, Tuple, Union, TypeAlias
 
 SUPPORTED_COMPRESSION_TYPES = (
     "bz2",
@@ -45,13 +45,16 @@ except ImportError:
     _HAVE_ZSTD = False
 
 
+ContainerType: TypeAlias = Optional[Union[object, "zstandard.ZstdCompressor"]]
+
+
 @contextmanager
 def open_file(
     filename: Union[str, Path],
     mode: str,
     compression: Optional[str] = None,
     level: Optional[int] = None,
-) -> Iterator[Tuple[Any, IO, bool]]:
+) -> Iterator[Tuple[ContainerType, IO, bool]]:
     """
     Create file handle for reading or writing, optionally with compression.
 
@@ -64,13 +67,13 @@ def open_file(
             `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
             '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
             and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to None.
-        level (Optional[int], optional): Compression level. Only in effect if `compression`
-            is not None. If `level` is None, each compression method's default will be
-            used. Defaults to None.
+        level (Optional[int], optional): Compression level. Only in effect if
+            `compression` is not None. If `level` is None, each compression method's
+            default will be used. Defaults to None.
 
     Yields:
-        Iterator[Tuple[Any, IO, bool]]: Container handle, file handle, and boolean
-            indicating if file content is binary.
+        Iterator[Tuple[ContainerType, IO, bool]]: Container handle, file handle, and
+            boolean indicating if file content is binary.
 
     Raises:
         IsADirectoryError: If `filename` is a directory.
@@ -90,7 +93,7 @@ def open_file(
         raise IsADirectoryError("Must be a file, not a directory: '%s'" % filename)
 
     # Check if file exists when opening in read mode
-    if mode[0] == 'r' and not filepath.is_file():
+    if mode[0] == "r" and not filepath.is_file():
         raise FileNotFoundError("No such file: '%s'" % filename)
 
     # Check compression
