@@ -74,6 +74,7 @@ def open_file(
 
     Raises:
         IsADirectoryError: If `filename` is a directory.
+        FileNotFoundError: If `mode` is 'r' and the file does not exist.
         ValueError: If `compression` is not supported.
         NotImplementedError: If `compression` is not implemented.
         tarfile.ReadError: If `mode` is 'r' and file is not a tarfile.
@@ -87,6 +88,10 @@ def open_file(
     filepath = Path(filename)
     if filepath.is_dir():
         raise IsADirectoryError("Must be a file, not a directory: '%s'" % filename)
+
+    # Check if file exists when opening in read mode
+    if mode[0] == 'r' and not filepath.is_file():
+        raise FileNotFoundError("No such file: '%s'" % filename)
 
     # Check compression
     valid_compression_types = (None, "infer") + SUPPORTED_COMPRESSION_TYPES
@@ -149,7 +154,7 @@ def open_file(
         container_handle = tarfile.open(filename, **kwargs)
         try:
             if mode[0] == "r":
-                if filepath.is_file() and not tarfile.is_tarfile(filename):
+                if not tarfile.is_tarfile(filename):
                     raise tarfile.ReadError(filename)
 
                 file_list = container_handle.getnames()
@@ -190,7 +195,7 @@ def open_file(
         container_handle = zipfile.ZipFile(filename, **kwargs)
         try:
             if mode == "r":
-                if filepath.is_file() and not zipfile.is_zipfile(filename):
+                if not zipfile.is_zipfile(filename):
                     raise zipfile.BadZipFile(filename)
 
                 file_list = container_handle.namelist()
