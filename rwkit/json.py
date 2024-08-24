@@ -29,15 +29,15 @@ def _read_jsonl_generator(
             `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
             '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
             and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
-        chunksize (int, optional): Number of JSON objects (= lines) to read in each
-            chunk. Defaults to 1.
+        chunksize (int, optional): Number of JSON-serializable objects (= lines) to read
+            as a chunk. Defaults to 1.
 
     Raises:
         ValueError: If `mode` does not start with 'r'.
         ValueError: If `chunksize` is not 1 or greater.
 
     Yields:
-        Generator[List[Any], Any, None]: Lists of JSON objects.
+        Generator[List[Any], Any, None]: Lists of JSON-serializable objects.
     """
     # Check mode
     if not mode[0].startswith("r"):
@@ -89,8 +89,8 @@ def read_json(
             `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
             '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
             and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
-        lines (bool, optional): If True, returns a list of JSON objects (1 per line).
-            Defaults to False.
+        lines (bool, optional): If True, returns a list of JSON-serializable objects
+            (1 per line). Defaults to False.
         chunksize (Optional[int], optional): If None, reads all lines at once. If
             integer, reads the file in chunks of `chunksize` lines. Only valid if
             `lines` is True. Defaults to None.
@@ -100,11 +100,11 @@ def read_json(
         ValueError: If `mode` does not start with 'r'.
 
     Returns:
-        Any: If `lines` is False, returns a single JSON object. If `lines` is True,
-            returns a list of JSON objects (1 per line). Additionally, if `chunksize`
-            is None, returns all JSON objects at once. If `chunksize` is an integer,
-            returns a generator that yields lists of JSON objects in chunks of
-            `chunksize`.
+        Any: If `lines` is False, returns a single JSON-serializable object. If `lines`
+            is True, returns a list of JSON-serializable objects (1 per line).
+            Additionally, if `chunksize` is None, returns all JSON-serializable objects
+            at once. If `chunksize` is an integer, returns a generator that yields lists
+            of JSON-serializable objects in chunks of `chunksize`.
     """
     # Check mode
     if not mode[0].startswith("r"):
@@ -128,18 +128,18 @@ def read_json(
 
 def write_json(
     filename: Union[str, Path],
-    object: Any,
+    data: Any,
     mode: str = "w",
     compression: Optional[str] = "infer",
     level: Optional[int] = None,
     lines: bool = False,
 ) -> None:
     """
-    Write a JSON object to a file.
+    Write a JSON-serializable object to a file.
 
     Args:
         filename (Union[str, Path]): File to write to.
-        object (Any): JSON object to write to file.
+        data (Any): JSON-serializable object to write to file.
         mode (str, optional): File access mode. Valid options are 'w' or 'x'.
             Defaults to 'w'.
         compression (Optional[str], optional): File compression. Valid options are
@@ -151,8 +151,8 @@ def write_json(
         level (Optional[int], optional): Compression level. Only in effect if
             `compression` is not None. If `level` is None, each compression method's
             default will be used. Defaults to None.
-        lines (bool, optional): If False, write a single JSON object. If True, write
-            1 JSON object per line. Defaults to False.
+        lines (bool, optional): If False, write a single JSON-serializable object. If
+            True, write 1 JSON-serializable object per line. Defaults to False.
 
     Raises:
         ValueError: If `mode` does not start with 'w' or 'x'.
@@ -170,13 +170,13 @@ def write_json(
         is_binary,
     ):
         if lines:
-            if isinstance(object, list):
-                object_serialized = [json.dumps(item) for item in object]
+            if isinstance(data, list):
+                data_serialized = [json.dumps(item) for item in data]
             else:
-                object_serialized = [json.dumps(object)]
-            content = "\n".join(object_serialized) + "\n"
+                data_serialized = [json.dumps(data)]
+            content = "\n".join(data_serialized) + "\n"
         else:
-            content = json.dumps(object) + "\n"
+            content = json.dumps(data) + "\n"
 
         if is_binary:
             content = content.encode()
@@ -207,31 +207,31 @@ def read_jsonl(
             `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
             '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
             and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
-        chunksize (Optional[int], optional): If None, reads all JSON objects (= lines)
-            at once. If integer, reads the file in chunks of `chunksize`. Defaults to
-            None.
+        chunksize (Optional[int], optional): If None, reads all JSON-serializable
+            objects (= lines) at once. If integer, reads the file in chunks of
+            `chunksize`. Defaults to None.
 
     Returns:
-        List[Any]: If `chunksize` is None, returns a list of JSON objects. If
-            `chunksize` is an integer, returns a generator that yields lists of JSON
-            objects in chunks of `chunksize`.
+        List[Any]: If `chunksize` is None, returns a list of JSON-serializable objects.
+            If `chunksize` is an integer, returns a generator that yields lists of
+            JSON-serializable objects in chunks of `chunksize`.
     """
     return read_json(filename, mode, compression, lines=True, chunksize=chunksize)
 
 
 def write_jsonl(
     filename: Union[str, Path],
-    object: Any,
+    data: Any,
     mode: str = "w",
     compression: Optional[str] = "infer",
     level: Optional[int] = None,
 ) -> None:
     """
-    Write JSON object(s) to a JSON Lines file.
+    Write JSON-serializable object(s) to a JSON Lines file.
 
     Args:
         filename (Union[str, Path]): File to write to.
-        object (Any): List of JSON objects to write.
+        data (Any): List of JSON-serializable objects to write.
         mode (str, optional): File access mode. Defaults to 'w'.
         compression (Optional[str], optional): File compression. Valid options are
             'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
@@ -243,4 +243,4 @@ def write_jsonl(
             `compression` is not None. If `level` is None, each compression method's
             default will be used. Defaults to None.
     """
-    write_json(filename, object, mode, compression, level, lines=True)
+    write_json(filename, data, mode, compression, level, lines=True)
