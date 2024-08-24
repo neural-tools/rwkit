@@ -9,7 +9,14 @@ import tarfile
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import IO, Any, Dict, Iterator, Optional, Tuple, Union, TypeAlias
+from typing import IO, Any, Dict, Iterator, Optional, Tuple, TypeAlias, Union
+
+try:
+    import zstandard
+
+    _HAVE_ZSTD = True
+except ImportError:
+    _HAVE_ZSTD = False
 
 SUPPORTED_COMPRESSION_TYPES = (
     "bz2",
@@ -19,31 +26,6 @@ SUPPORTED_COMPRESSION_TYPES = (
     "zip",
     "zstd",
 )
-SUPPORTED_COMPRESSION_EXTS = (
-    "",
-    ".bz2",
-    ".gz",
-    ".tar",
-    ".tar.bz2",
-    ".tar.gz",
-    ".tgz",
-    ".tar.xz",
-    ".tar.zip",
-    ".xz",
-    ".zip",
-    ".zst",
-)
-SUPPORTED_FILE_TYPES = ("text", "json", "jsonl", "yaml", "docx")
-SUPPORTED_FILE_EXTS = ("txt", "json", "jsonl", "yaml", "docx")
-
-
-try:
-    import zstandard
-
-    _HAVE_ZSTD = True
-except ImportError:
-    _HAVE_ZSTD = False
-
 
 ContainerType: TypeAlias = Optional[Union[object, "zstandard.ZstdCompressor"]]
 
