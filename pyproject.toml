@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "rwkit"
+version = "1.0.0"
+description = ""
+authors = ["David Adametz <20501597+david-adametz@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+zstandard = {version = "^0.23.0", optional = true}
+pyyaml = {version = "^6.0.1", optional = true}
+
+[tool.poetry.extras]
+compression = ["zstandard"]
+yaml = ["pyyaml"]
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
