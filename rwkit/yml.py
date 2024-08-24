@@ -40,7 +40,7 @@ def read_yaml(
         ValueError: If `mode` does not start with 'r'.
 
     Returns:
-        Any: Object read from file.
+        Any: YAML-serializable object read from file.
     """
     if not _HAVE_YAML:
         raise ModuleNotFoundError(
@@ -62,17 +62,17 @@ def read_yaml(
 
 def write_yaml(
     filename: Union[str, Path],
-    object: Any,
+    data: Any,
     mode: str = "w",
     compression: Optional[str] = "infer",
     level: Optional[int] = None,
 ) -> None:
     """
-    Write a dictionary object to a YAML file.
+    Write a YAML-serializable object to a YAML file.
 
     Args:
         filename (Union[str, Path]): File to write to.
-        object (Any): Object to write.
+        data (Any): YAML-serializable object to write.
         mode (str, optional): File access mode. Defaults to 'w'.
         compression (Optional[str], optional): File compression. Valid options are
             'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
@@ -105,7 +105,7 @@ def write_yaml(
         file_handle,
         is_content_binary,
     ):
-        content = yaml.dump(object, sort_keys=False)
+        content = yaml.dump(data, sort_keys=False)
 
         if is_content_binary:
             content = content.encode()
