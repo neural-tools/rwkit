@@ -9,7 +9,7 @@ import tarfile
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import IO, Any, Dict, Iterator, Optional, Tuple, TypeAlias, Union
+from typing import IO, Any, Dict, Iterator, Optional, Tuple, Union
 
 try:
     import zstandard
@@ -27,7 +27,7 @@ SUPPORTED_COMPRESSION_TYPES = (
     "zstd",
 )
 
-ContainerType: TypeAlias = Optional[Union[object, "zstandard.ZstdCompressor"]]
+ContainerType = Optional[Union[object, "zstandard.ZstdCompressor"]]
 
 
 @contextmanager
