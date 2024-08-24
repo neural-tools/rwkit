@@ -68,6 +68,12 @@ class TestCommon(unittest.TestCase):
                 filepath = Path(tmpdir) / "file"
 
                 if compression == "?":
+                    if mode == "r":
+                        # In read mode, existence of file is checked before validation
+                        # of compression (see below), hence, skip this case
+                        continue
+
+                    # In all other modes, unknown compression must raise ValueError
                     with self.assertRaises(ValueError):
                         with open_file(
                             filename=filepath,
@@ -79,7 +85,17 @@ class TestCommon(unittest.TestCase):
                     continue
 
                 if mode == "r":
-                    # Create file
+                    # File does not exist yet, read mode must raise FileNotFoundError
+                    with self.assertRaises(FileNotFoundError):
+                        with open_file(
+                            filename=filepath,
+                            mode=mode,
+                            compression=compression,
+                            level=level,
+                        ) as _:
+                            pass
+
+                    # Create file now
                     if compression is None:
                         with open(filepath, mode="w") as handle:
                             handle.write(content)
