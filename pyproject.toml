@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rwkit"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 authors = ["David Adametz <20501597+david-adametz@users.noreply.github.com>"]
 readme = "README.md"
