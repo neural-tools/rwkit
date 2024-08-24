@@ -1,10 +1,10 @@
 # rwkit
 
-`rwkit` is a Python package that simplifies reading and writing various file formats, including text, json, yaml, and docx. It supports transparent handling of compression, and allows for processing large files in chunks.
+`rwkit` is a Python package that simplifies reading and writing various file formats, including text, json, jsonl and yaml. It supports transparent handling of compression, and allows for processing large files in chunks.
 
 ## Features
 
--   Easy-to-use functions for reading and writing text, json, yaml, and docx files.
+-   Easy-to-use functions for reading and writing text, json, jsonl and yaml files.
 -   Transparent compression support: bz2, gzip, tar, tar.bz2, tar.gz, tar.xz, xz, zip, zstd.
 -   Generator functions for processing large files in chunks.
 
@@ -128,27 +128,6 @@ loaded_data = rw.read_yaml("file.yaml")
 
 print(loaded_data)
 # Output: {'name': 'Alice', 'age': 25}
-```
-
-### Reading and Writing Docx Files
-
-Note: Requires `docx` package. No compression support.
-
-```python
-import rwkit as rw
-
-
-# Sample text
-text = "Hello, rwkit!"
-
-# Write to a Docx file
-rw.write_docx("file.docx", text)
-
-# Read a Docx file
-loaded_text = rw.read_docx("file.docx")
-
-print(loaded_text)
-# Output: 'Hello, rwkit!'
 ```
 
 ## Compression
