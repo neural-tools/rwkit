@@ -106,6 +106,8 @@ rw.write_jsonl("file.jsonl", data)
 
 # Read data
 loaded_data = rw.read_jsonl("file.jsonl")
+
+print(loaded_data)
 # Output: [{'name': 'Alice', 'age': 25}, {'name': 'Bob', 'age': 30}]
 ```
 
