@@ -153,7 +153,8 @@ print(loaded_text)
 # Output: 'Hello, rwkit!'
 ```
 
-Alternatively, specify `compression` explicitly (see all available options in table below):
+Alternatively, specify `compression` explicitly (see all available options in table
+below):
 
 ```python
 import rwkit as rw
