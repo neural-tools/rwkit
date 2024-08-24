@@ -16,7 +16,7 @@ from tempfile import TemporaryDirectory
 import yaml
 import zstandard
 
-from rwkit.rw_yaml import read_yaml, write_yaml
+from rwkit.io_yaml import read_yaml, write_yaml
 
 
 class TestYaml(unittest.TestCase):
