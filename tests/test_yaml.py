@@ -16,7 +16,7 @@ from tempfile import TemporaryDirectory
 import yaml
 import zstandard
 
-from rwkit.yaml import read_yaml, write_yaml
+from rwkit.rw_yaml import read_yaml, write_yaml
 
 
 class TestYaml(unittest.TestCase):
@@ -25,9 +25,9 @@ class TestYaml(unittest.TestCase):
     def test_read_yaml(self):
         """test_read_yaml"""
 
-        object_expected = {"A": 1, "B": -0.1, "C": "c", "D": None}
-        object_expected_serialized = yaml.dump(object_expected, sort_keys=False)
-        object_expected_serialized_binary = object_expected_serialized.encode()
+        data_expected = {"A": 1, "B": -0.1, "C": "c", "D": None}
+        data_expected_serialized = yaml.dump(data_expected, sort_keys=False)
+        data_expected_serialized_binary = data_expected_serialized.encode()
 
         add_file_extension_list = [True, False]
         infer_list = [True, False]
@@ -54,30 +54,30 @@ class TestYaml(unittest.TestCase):
                 # Write to file
                 if compression is None:
                     with open(filepath, mode="w") as handle:
-                        yaml.dump(object_expected, stream=handle, sort_keys=False)
+                        yaml.dump(data_expected, stream=handle, sort_keys=False)
                 elif compression == "bz2":
                     if add_file_extension:
                         filepath = filepath.with_suffix(".bz2")
                     with bz2.open(filepath, mode="wb") as handle:
-                        handle.write(object_expected_serialized_binary)
+                        handle.write(data_expected_serialized_binary)
                 elif compression == "gzip":
                     if add_file_extension:
                         filepath = filepath.with_suffix(".gz")
                     with gzip.open(filepath, mode="wb") as handle:
-                        handle.write(object_expected_serialized_binary)
+                        handle.write(data_expected_serialized_binary)
                 elif compression == "xz":
                     if add_file_extension:
                         filepath = filepath.with_suffix(".xz")
                     with lzma.open(
                         filepath, format=lzma.FORMAT_XZ, mode="wb"
                     ) as handle:
-                        handle.write(object_expected_serialized_binary)
+                        handle.write(data_expected_serialized_binary)
                 elif compression == "zip":
                     if add_file_extension:
                         filepath = filepath.with_suffix(".zip")
                     with zipfile.ZipFile(filepath, mode="w") as container_handle:
                         with container_handle.open("data", mode="w") as file_handle:
-                            file_handle.write(object_expected_serialized_binary)
+                            file_handle.write(data_expected_serialized_binary)
                 elif compression in ("tar", "tar.bz2", "tar.gz", "tgz", "tar.xz"):
                     if add_file_extension:
                         filepath = filepath.with_suffix("." + compression)
@@ -90,22 +90,22 @@ class TestYaml(unittest.TestCase):
 
                     with tarfile.open(filepath, mode=tar_mode) as container_handle:
                         tar_info = tarfile.TarInfo(name="data")
-                        tar_info.size = len(object_expected_serialized_binary)
+                        tar_info.size = len(data_expected_serialized_binary)
                         container_handle.addfile(
                             tar_info,
-                            fileobj=BytesIO(object_expected_serialized_binary),
+                            fileobj=BytesIO(data_expected_serialized_binary),
                         )
                 elif compression == "zstd":
                     if add_file_extension:
                         filepath = filepath.with_suffix(".zst")
                     with zstandard.open(filepath, mode="w") as handle:
-                        handle.write(object_expected_serialized)
+                        handle.write(data_expected_serialized)
                 else:
                     raise NotImplementedError(compression)
 
                 # Read file contents
                 if infer & ((compression is None) | add_file_extension):
-                    object_observed = read_yaml(
+                    data_observed = read_yaml(
                         filename=filepath,
                         mode="r",
                         compression="infer",
@@ -117,26 +117,26 @@ class TestYaml(unittest.TestCase):
                         else:
                             mode = "r:gz"
 
-                        object_observed = read_yaml(
+                        data_observed = read_yaml(
                             filename=filepath,
                             mode=mode,
                             compression="tar",
                         )
                     else:
-                        object_observed = read_yaml(
+                        data_observed = read_yaml(
                             filename=filepath,
                             mode="r",
                             compression=compression,
                         )
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "read_yaml() failed.\n"
                     "Parameters:\n"
                     f"  compression: {compression}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )
 
     def test_write_yaml(self):
@@ -149,12 +149,12 @@ class TestYaml(unittest.TestCase):
                 ValueError,
                 write_yaml,
                 filename=filename,
-                object="{}",
+                data="{}",
                 mode="w",
                 compression="?",
             )
 
-        object_expected = {"A": 1, "B": -0.1, "C": "c", "D": None}
+        data_expected = {"A": 1, "B": -0.1, "C": "c", "D": None}
 
         add_file_extension_list = [True, False]
         compression_list = (
@@ -200,7 +200,7 @@ class TestYaml(unittest.TestCase):
                         ValueError,
                         write_yaml,
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode="w",
                         compression="?",
                         level=None,
@@ -217,7 +217,7 @@ class TestYaml(unittest.TestCase):
                 if infer & ((compression is None) | add_file_extension):
                     write_yaml(
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode=mode,
                         compression="infer",
                         level=None,
@@ -226,7 +226,7 @@ class TestYaml(unittest.TestCase):
                     if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                         write_yaml(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression="tar",
                             level=None,
@@ -234,7 +234,7 @@ class TestYaml(unittest.TestCase):
                     else:
                         write_yaml(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression=compression,
                             level=None,
@@ -287,23 +287,23 @@ class TestYaml(unittest.TestCase):
                 else:
                     raise NotImplementedError(compression)
 
-                object_observed = yaml.safe_load(content)
+                data_observed = yaml.safe_load(content)
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "write_yaml() failed.\n"
                     "Parameters:\n"
                     f"  mode: 'w'\n"
                     f"  compression: {compression}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )
 
     def test_read_write_yaml(self):
         """test_read_write_yaml"""
 
-        object_expected = {"A": 1, "B": -0.1, "C": "c", "D": None}
+        data_expected = {"A": 1, "B": -0.1, "C": "c", "D": None}
 
         add_file_extension_list = [True, False]
         compression_list = (
@@ -349,7 +349,7 @@ class TestYaml(unittest.TestCase):
                         ValueError,
                         write_yaml,
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode="w",
                         compression="?",
                         level=None,
@@ -366,7 +366,7 @@ class TestYaml(unittest.TestCase):
                 if infer & ((compression is None) | add_file_extension):
                     write_yaml(
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode=mode,
                         compression="infer",
                         level=None,
@@ -375,7 +375,7 @@ class TestYaml(unittest.TestCase):
                     if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                         write_yaml(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression="tar",
                             level=None,
@@ -383,7 +383,7 @@ class TestYaml(unittest.TestCase):
                     else:
                         write_yaml(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression=compression,
                             level=None,
@@ -391,7 +391,7 @@ class TestYaml(unittest.TestCase):
 
                 # Read file contents
                 if infer & ((compression is None) | add_file_extension):
-                    object_observed = read_yaml(
+                    data_observed = read_yaml(
                         filename=filepath,
                         mode="r",
                         compression="infer",
@@ -403,24 +403,24 @@ class TestYaml(unittest.TestCase):
                         else:
                             mode = "r:gz"
 
-                        object_observed = read_yaml(
+                        data_observed = read_yaml(
                             filename=filepath,
                             mode=mode,
                             compression="tar",
                         )
                     else:
-                        object_observed = read_yaml(
+                        data_observed = read_yaml(
                             filename=filepath,
                             mode="r",
                             compression=compression,
                         )
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "read_yaml() failed.\n"
                     "Parameters:\n"
                     f"  compression: {compression}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )

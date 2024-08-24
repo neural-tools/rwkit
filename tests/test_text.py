@@ -15,7 +15,7 @@ from tempfile import TemporaryDirectory
 
 import zstandard
 
-from rwkit.text import read_lines, read_text, write_lines, write_text
+from rwkit.rw_text import read_lines, read_text, write_lines, write_text
 
 
 class TestText(unittest.TestCase):

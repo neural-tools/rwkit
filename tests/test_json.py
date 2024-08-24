@@ -16,7 +16,7 @@ from tempfile import TemporaryDirectory
 
 import zstandard
 
-from rwkit.json import read_json, read_jsonl, write_json, write_jsonl
+from rwkit.rw_json import read_json, read_jsonl, write_json, write_jsonl
 
 
 class TestJson(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestJson(unittest.TestCase):
     def test_read_json(self):
         """test_read_json"""
 
-        object_expected_list = [
+        data_expected_list = [
             {"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None},
             [{"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None}],
             0,
@@ -58,13 +58,13 @@ class TestJson(unittest.TestCase):
         lines_list = [True, False]
 
         for (
-            object_expected,
+            data_expected,
             add_file_extension,
             compression,
             infer,
             lines,
         ) in itertools.product(
-            object_expected_list,
+            data_expected_list,
             add_file_extension_list,
             compression_list,
             infer_list,
@@ -74,17 +74,17 @@ class TestJson(unittest.TestCase):
                 filepath = Path(tmpdir) / "file"
 
                 if lines:
-                    if isinstance(object_expected, list):
-                        object_expected_serialized = [
-                            json.dumps(item) for item in object_expected
+                    if isinstance(data_expected, list):
+                        data_expected_serialized = [
+                            json.dumps(item) for item in data_expected
                         ]
                     else:
-                        object_expected_serialized = [json.dumps(object_expected)]
+                        data_expected_serialized = [json.dumps(data_expected)]
 
-                    content = "\n".join(object_expected_serialized) + "\n"
+                    content = "\n".join(data_expected_serialized) + "\n"
                     content_bytes = content.encode()
                 else:
-                    content = json.dumps(object_expected)
+                    content = json.dumps(data_expected)
                     content_bytes = content.encode()
 
                 # Write to file
@@ -141,7 +141,7 @@ class TestJson(unittest.TestCase):
 
                 # Read file contents
                 if infer & ((compression is None) | add_file_extension):
-                    object_observed = read_json(
+                    data_observed = read_json(
                         filename=filepath,
                         mode="r",
                         compression="infer",
@@ -155,7 +155,7 @@ class TestJson(unittest.TestCase):
                         else:
                             mode = "r:gz"
 
-                        object_observed = read_json(
+                        data_observed = read_json(
                             filename=filepath,
                             mode=mode,
                             compression="tar",
@@ -163,7 +163,7 @@ class TestJson(unittest.TestCase):
                             chunksize=None,
                         )
                     else:
-                        object_observed = read_json(
+                        data_observed = read_json(
                             filename=filepath,
                             mode="r",
                             compression=compression,
@@ -172,20 +172,20 @@ class TestJson(unittest.TestCase):
                         )
 
                 if lines:
-                    if isinstance(object_observed, list) & (
-                        not isinstance(object_expected, list)
+                    if isinstance(data_observed, list) & (
+                        not isinstance(data_expected, list)
                     ):
-                        object_observed = object_observed[0]
+                        data_observed = data_observed[0]
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "read_json() failed.\n"
                     "Parameters:\n"
                     f"  compression: {compression}\n"
                     f"  lines:       {lines}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )
 
                 # Read file contents with chunksize
@@ -205,7 +205,7 @@ class TestJson(unittest.TestCase):
                     # All chunksizes must return the same result
                     for chunksize in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 1000):
                         if infer & ((compression is None) | add_file_extension):
-                            object_observed = []
+                            data_observed = []
                             for chunk in read_json(
                                 filename=filepath,
                                 mode="r",
@@ -213,7 +213,7 @@ class TestJson(unittest.TestCase):
                                 lines=True,
                                 chunksize=chunksize,
                             ):
-                                object_observed.extend(chunk)
+                                data_observed.extend(chunk)
                         else:
                             if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                                 if "." in compression:
@@ -221,7 +221,7 @@ class TestJson(unittest.TestCase):
                                 else:
                                     mode = "r:gz"
 
-                                object_observed = []
+                                data_observed = []
                                 for chunk in read_json(
                                     filename=filepath,
                                     mode=mode,
@@ -229,9 +229,9 @@ class TestJson(unittest.TestCase):
                                     lines=True,
                                     chunksize=chunksize,
                                 ):
-                                    object_observed.extend(chunk)
+                                    data_observed.extend(chunk)
                             else:
-                                object_observed = []
+                                data_observed = []
                                 for chunk in read_json(
                                     filename=filepath,
                                     mode="r",
@@ -239,23 +239,23 @@ class TestJson(unittest.TestCase):
                                     lines=True,
                                     chunksize=chunksize,
                                 ):
-                                    object_observed.extend(chunk)
+                                    data_observed.extend(chunk)
 
-                        if isinstance(object_observed, list) & (
-                            not isinstance(object_expected, list)
+                        if isinstance(data_observed, list) & (
+                            not isinstance(data_expected, list)
                         ):
-                            object_observed = object_observed[0]
+                            data_observed = data_observed[0]
 
                         self.assertEqual(
-                            object_expected,
-                            object_observed,
+                            data_expected,
+                            data_observed,
                             "read_json() failed.\n"
                             "Parameters:\n"
                             f"  compression: {compression}\n"
                             f"  lines:       {lines}\n"
                             f"  chunksize:   {chunksize}\n"
-                            f"Expected: '{object_expected}'\n"
-                            f"Observed: '{object_observed}'",
+                            f"Expected: '{data_expected}'\n"
+                            f"Observed: '{data_observed}'",
                         )
                 else:
                     # Specifying chunksize not None and lines=False
@@ -280,12 +280,12 @@ class TestJson(unittest.TestCase):
                 ValueError,
                 write_json,
                 filename=filename,
-                object="{}",
+                data="{}",
                 mode="w",
                 compression="?",
             )
 
-        object_expected_list = [
+        data_expected_list = [
             {"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None},
             [{"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None}],
             0,
@@ -319,13 +319,13 @@ class TestJson(unittest.TestCase):
         lines_list = [True, False]
 
         for (
-            object_expected,
+            data_expected,
             add_file_extension,
             compression,
             infer,
             lines,
         ) in itertools.product(
-            object_expected_list,
+            data_expected_list,
             add_file_extension_list,
             compression_list,
             infer_list,
@@ -355,7 +355,7 @@ class TestJson(unittest.TestCase):
                         ValueError,
                         write_json,
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode="w",
                         compression="?",
                         level=None,
@@ -373,7 +373,7 @@ class TestJson(unittest.TestCase):
                 if infer & ((compression is None) | add_file_extension):
                     write_json(
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode=mode,
                         compression="infer",
                         level=None,
@@ -383,7 +383,7 @@ class TestJson(unittest.TestCase):
                     if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                         write_json(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression="tar",
                             level=None,
@@ -392,7 +392,7 @@ class TestJson(unittest.TestCase):
                     else:
                         write_json(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression=compression,
                             level=None,
@@ -447,33 +447,33 @@ class TestJson(unittest.TestCase):
                     raise NotImplementedError(compression)
 
                 if lines:
-                    object_observed = [
+                    data_observed = [
                         json.loads(line) for line in content.rstrip("\n").split("\n")
                     ]
 
-                    if isinstance(object_observed, list) & (
-                        not isinstance(object_expected, list)
+                    if isinstance(data_observed, list) & (
+                        not isinstance(data_expected, list)
                     ):
-                        object_observed = object_observed[0]
+                        data_observed = data_observed[0]
                 else:
-                    object_observed = json.loads(content)
+                    data_observed = json.loads(content)
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "write_json() failed.\n"
                     "Parameters:\n"
                     f"  mode: 'w'\n"
                     f"  compression: {compression}\n"
                     f"  lines:       {lines}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )
 
     def test_read_write_json(self):
         """test_read_write_json"""
 
-        object_expected_list = [
+        data_expected_list = [
             {"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None},
             [{"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None}],
             0,
@@ -507,13 +507,13 @@ class TestJson(unittest.TestCase):
         lines_list = [True, False]
 
         for (
-            object_expected,
+            data_expected,
             add_file_extension,
             compression,
             infer,
             lines,
         ) in itertools.product(
-            object_expected_list,
+            data_expected_list,
             add_file_extension_list,
             compression_list,
             infer_list,
@@ -543,7 +543,7 @@ class TestJson(unittest.TestCase):
                         ValueError,
                         write_json,
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode="w",
                         compression="?",
                         level=None,
@@ -561,7 +561,7 @@ class TestJson(unittest.TestCase):
                 if infer & ((compression is None) | add_file_extension):
                     write_json(
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode=mode,
                         compression="infer",
                         level=None,
@@ -571,7 +571,7 @@ class TestJson(unittest.TestCase):
                     if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                         write_json(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression="tar",
                             level=None,
@@ -580,7 +580,7 @@ class TestJson(unittest.TestCase):
                     else:
                         write_json(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression=compression,
                             level=None,
@@ -589,7 +589,7 @@ class TestJson(unittest.TestCase):
 
                 # Read file contents
                 if infer & ((compression is None) | add_file_extension):
-                    object_observed = read_json(
+                    data_observed = read_json(
                         filename=filepath,
                         mode="r",
                         compression="infer",
@@ -603,7 +603,7 @@ class TestJson(unittest.TestCase):
                         else:
                             mode = "r:gz"
 
-                        object_observed = read_json(
+                        data_observed = read_json(
                             filename=filepath,
                             mode=mode,
                             compression="tar",
@@ -611,7 +611,7 @@ class TestJson(unittest.TestCase):
                             chunksize=None,
                         )
                     else:
-                        object_observed = read_json(
+                        data_observed = read_json(
                             filename=filepath,
                             mode="r",
                             compression=compression,
@@ -620,20 +620,20 @@ class TestJson(unittest.TestCase):
                         )
 
                 if lines:
-                    if isinstance(object_observed, list) & (
-                        not isinstance(object_expected, list)
+                    if isinstance(data_observed, list) & (
+                        not isinstance(data_expected, list)
                     ):
-                        object_observed = object_observed[0]
+                        data_observed = data_observed[0]
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "read_json() failed.\n"
                     "Parameters:\n"
                     f"  compression: {compression}\n"
                     f"  lines:       {lines}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )
 
                 # Read file contents with chunksize
@@ -653,7 +653,7 @@ class TestJson(unittest.TestCase):
                     # All chunksizes must return the same result
                     for chunksize in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 1000):
                         if infer & ((compression is None) | add_file_extension):
-                            object_observed = []
+                            data_observed = []
                             for chunk in read_json(
                                 filename=filepath,
                                 mode="r",
@@ -661,7 +661,7 @@ class TestJson(unittest.TestCase):
                                 lines=True,
                                 chunksize=chunksize,
                             ):
-                                object_observed.extend(chunk)
+                                data_observed.extend(chunk)
                         else:
                             if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                                 if "." in compression:
@@ -669,7 +669,7 @@ class TestJson(unittest.TestCase):
                                 else:
                                     mode = "r:gz"
 
-                                object_observed = []
+                                data_observed = []
                                 for chunk in read_json(
                                     filename=filepath,
                                     mode=mode,
@@ -677,9 +677,9 @@ class TestJson(unittest.TestCase):
                                     lines=True,
                                     chunksize=chunksize,
                                 ):
-                                    object_observed.extend(chunk)
+                                    data_observed.extend(chunk)
                             else:
-                                object_observed = []
+                                data_observed = []
                                 for chunk in read_json(
                                     filename=filepath,
                                     mode="r",
@@ -687,23 +687,23 @@ class TestJson(unittest.TestCase):
                                     lines=True,
                                     chunksize=chunksize,
                                 ):
-                                    object_observed.extend(chunk)
+                                    data_observed.extend(chunk)
 
-                        if isinstance(object_observed, list) & (
-                            not isinstance(object_expected, list)
+                        if isinstance(data_observed, list) & (
+                            not isinstance(data_expected, list)
                         ):
-                            object_observed = object_observed[0]
+                            data_observed = data_observed[0]
 
                         self.assertEqual(
-                            object_expected,
-                            object_observed,
+                            data_expected,
+                            data_observed,
                             "read_json() failed.\n"
                             "Parameters:\n"
                             f"  compression: {compression}\n"
                             f"  lines:       {lines}\n"
                             f"  chunksize:   {chunksize}\n"
-                            f"Expected: '{object_expected}'\n"
-                            f"Observed: '{object_observed}'",
+                            f"Expected: '{data_expected}'\n"
+                            f"Observed: '{data_observed}'",
                         )
                 else:
                     # Specifying chunksize not None and lines=False
@@ -721,7 +721,7 @@ class TestJson(unittest.TestCase):
     def test_read_jsonl(self):
         """test_read_jsonl"""
 
-        object_expected_list = [
+        data_expected_list = [
             {"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None},
             [{"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None}],
             0,
@@ -753,24 +753,24 @@ class TestJson(unittest.TestCase):
         )
 
         for (
-            object_expected,
+            data_expected,
             add_file_extension,
             compression,
             infer,
         ) in itertools.product(
-            object_expected_list, add_file_extension_list, compression_list, infer_list
+            data_expected_list, add_file_extension_list, compression_list, infer_list
         ):
             with TemporaryDirectory() as tmpdir:
                 filepath = Path(tmpdir) / "file"
 
-                if isinstance(object_expected, list):
-                    object_expected_serialized = [
-                        json.dumps(item) for item in object_expected
+                if isinstance(data_expected, list):
+                    data_expected_serialized = [
+                        json.dumps(item) for item in data_expected
                     ]
                 else:
-                    object_expected_serialized = [json.dumps(object_expected)]
+                    data_expected_serialized = [json.dumps(data_expected)]
 
-                content = "\n".join(object_expected_serialized) + "\n"
+                content = "\n".join(data_expected_serialized) + "\n"
                 content_bytes = content.encode()
 
                 # Write to file
@@ -827,7 +827,7 @@ class TestJson(unittest.TestCase):
 
                 # Read file contents
                 if infer & ((compression is None) | add_file_extension):
-                    object_observed = read_jsonl(
+                    data_observed = read_jsonl(
                         filename=filepath,
                         mode="r",
                         compression="infer",
@@ -840,33 +840,33 @@ class TestJson(unittest.TestCase):
                         else:
                             mode = "r:gz"
 
-                        object_observed = read_jsonl(
+                        data_observed = read_jsonl(
                             filename=filepath,
                             mode=mode,
                             compression="tar",
                             chunksize=None,
                         )
                     else:
-                        object_observed = read_jsonl(
+                        data_observed = read_jsonl(
                             filename=filepath,
                             mode="r",
                             compression=compression,
                             chunksize=None,
                         )
 
-                if isinstance(object_observed, list) & (
-                    not isinstance(object_expected, list)
+                if isinstance(data_observed, list) & (
+                    not isinstance(data_expected, list)
                 ):
-                    object_observed = object_observed[0]
+                    data_observed = data_observed[0]
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "read_jsonl() failed.\n"
                     "Parameters:\n"
                     f"  compression: {compression}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )
 
                 # Read file contents with chunksize
@@ -884,14 +884,14 @@ class TestJson(unittest.TestCase):
                 # All chunksizes must return the same result
                 for chunksize in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 1000):
                     if infer & ((compression is None) | add_file_extension):
-                        object_expected_list = []
+                        data_expected_list = []
                         for chunk in read_jsonl(
                             filename=filepath,
                             mode="r",
                             compression="infer",
                             chunksize=chunksize,
                         ):
-                            object_expected_list.extend(chunk)
+                            data_expected_list.extend(chunk)
                     else:
                         if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                             if "." in compression:
@@ -899,37 +899,37 @@ class TestJson(unittest.TestCase):
                             else:
                                 mode = "r:gz"
 
-                            object_expected_list = []
+                            data_expected_list = []
                             for chunk in read_jsonl(
                                 filename=filepath,
                                 mode=mode,
                                 compression="tar",
                                 chunksize=chunksize,
                             ):
-                                object_expected_list.extend(chunk)
+                                data_expected_list.extend(chunk)
                         else:
-                            object_expected_list = []
+                            data_expected_list = []
                             for chunk in read_jsonl(
                                 filename=filepath,
                                 mode="r",
                                 compression=compression,
                                 chunksize=chunksize,
                             ):
-                                object_expected_list.extend(chunk)
+                                data_expected_list.extend(chunk)
 
-                    if isinstance(object_observed, list) & (
-                        not isinstance(object_expected, list)
+                    if isinstance(data_observed, list) & (
+                        not isinstance(data_expected, list)
                     ):
-                        object_observed = object_observed[0]
+                        data_observed = data_observed[0]
 
                     self.assertEqual(
-                        object_expected,
-                        object_observed,
+                        data_expected,
+                        data_observed,
                         "read_jsonl() failed.\n"
                         "Parameters:\n"
                         f"  compression: {compression}\n"
-                        f"Expected: '{object_expected}'\n"
-                        f"Observed: '{object_observed}'",
+                        f"Expected: '{data_expected}'\n"
+                        f"Observed: '{data_observed}'",
                     )
 
     def test_write_jsonl(self):
@@ -942,12 +942,12 @@ class TestJson(unittest.TestCase):
                 ValueError,
                 write_jsonl,
                 filename=filename,
-                object="{}",
+                data="{}",
                 mode="w",
                 compression="?",
             )
 
-        object_expected_list = [
+        data_expected_list = [
             {"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None},
             [{"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None}],
             0,
@@ -980,12 +980,12 @@ class TestJson(unittest.TestCase):
         infer_list = [True, False]
 
         for (
-            object_expected,
+            data_expected,
             add_file_extension,
             compression,
             infer,
         ) in itertools.product(
-            object_expected_list, add_file_extension_list, compression_list, infer_list
+            data_expected_list, add_file_extension_list, compression_list, infer_list
         ):
             with TemporaryDirectory() as tmpdir:
                 filepath = Path(tmpdir) / "file"
@@ -1011,7 +1011,7 @@ class TestJson(unittest.TestCase):
                         ValueError,
                         write_jsonl,
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode="w",
                         compression="?",
                         level=None,
@@ -1028,7 +1028,7 @@ class TestJson(unittest.TestCase):
                 if infer & ((compression is None) | add_file_extension):
                     write_jsonl(
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode=mode,
                         compression="infer",
                         level=None,
@@ -1037,7 +1037,7 @@ class TestJson(unittest.TestCase):
                     if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                         write_jsonl(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression="tar",
                             level=None,
@@ -1045,7 +1045,7 @@ class TestJson(unittest.TestCase):
                     else:
                         write_jsonl(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression=compression,
                             level=None,
@@ -1098,30 +1098,30 @@ class TestJson(unittest.TestCase):
                 else:
                     raise NotImplementedError(compression)
 
-                object_observed = [
+                data_observed = [
                     json.loads(line) for line in content.rstrip("\n").split("\n")
                 ]
 
-                if isinstance(object_observed, list) & (
-                    not isinstance(object_expected, list)
+                if isinstance(data_observed, list) & (
+                    not isinstance(data_expected, list)
                 ):
-                    object_observed = object_observed[0]
+                    data_observed = data_observed[0]
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "write_jsonl() failed.\n"
                     "Parameters:\n"
                     f"  mode: '{mode}'\n"
                     f"  compression: {compression}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )
 
     def test_read_write_jsonl(self):
         """test_read_write_jsonl"""
 
-        object_expected_list = [
+        data_expected_list = [
             {"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None},
             [{"A": "a", "B": 1, "C": 0.1, "D": True, "E": False, "F": None}],
             0,
@@ -1154,12 +1154,12 @@ class TestJson(unittest.TestCase):
         infer_list = [True, False]
 
         for (
-            object_expected,
+            data_expected,
             add_file_extension,
             compression,
             infer,
         ) in itertools.product(
-            object_expected_list, add_file_extension_list, compression_list, infer_list
+            data_expected_list, add_file_extension_list, compression_list, infer_list
         ):
             with TemporaryDirectory() as tmpdir:
                 filepath = Path(tmpdir) / "file"
@@ -1185,7 +1185,7 @@ class TestJson(unittest.TestCase):
                         ValueError,
                         write_jsonl,
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode="w",
                         compression="?",
                         level=None,
@@ -1202,7 +1202,7 @@ class TestJson(unittest.TestCase):
                 if infer & ((compression is None) | add_file_extension):
                     write_jsonl(
                         filename=filepath,
-                        object=object_expected,
+                        data=data_expected,
                         mode=mode,
                         compression="infer",
                         level=None,
@@ -1211,7 +1211,7 @@ class TestJson(unittest.TestCase):
                     if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                         write_jsonl(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression="tar",
                             level=None,
@@ -1219,7 +1219,7 @@ class TestJson(unittest.TestCase):
                     else:
                         write_jsonl(
                             filename=filepath,
-                            object=object_expected,
+                            data=data_expected,
                             mode=mode,
                             compression=compression,
                             level=None,
@@ -1227,7 +1227,7 @@ class TestJson(unittest.TestCase):
 
                 # Read file contents
                 if infer & ((compression is None) | add_file_extension):
-                    object_observed = read_jsonl(
+                    data_observed = read_jsonl(
                         filename=filepath,
                         mode="r",
                         compression="infer",
@@ -1240,33 +1240,33 @@ class TestJson(unittest.TestCase):
                         else:
                             mode = "r:gz"
 
-                        object_observed = read_jsonl(
+                        data_observed = read_jsonl(
                             filename=filepath,
                             mode=mode,
                             compression="tar",
                             chunksize=None,
                         )
                     else:
-                        object_observed = read_jsonl(
+                        data_observed = read_jsonl(
                             filename=filepath,
                             mode="r",
                             compression=compression,
                             chunksize=None,
                         )
 
-                if isinstance(object_observed, list) & (
-                    not isinstance(object_expected, list)
+                if isinstance(data_observed, list) & (
+                    not isinstance(data_expected, list)
                 ):
-                    object_observed = object_observed[0]
+                    data_observed = data_observed[0]
 
                 self.assertEqual(
-                    object_expected,
-                    object_observed,
+                    data_expected,
+                    data_observed,
                     "read_jsonl() failed.\n"
                     "Parameters:\n"
                     f"  compression: {compression}\n"
-                    f"Expected: '{object_expected}'\n"
-                    f"Observed: '{object_observed}'",
+                    f"Expected: '{data_expected}'\n"
+                    f"Observed: '{data_observed}'",
                 )
 
                 # Read file contents with chunksize
@@ -1284,14 +1284,14 @@ class TestJson(unittest.TestCase):
                 # All chunksizes must return the same result
                 for chunksize in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 1000):
                     if infer & ((compression is None) | add_file_extension):
-                        object_expected_list = []
+                        data_expected_list = []
                         for chunk in read_jsonl(
                             filename=filepath,
                             mode="r",
                             compression="infer",
                             chunksize=chunksize,
                         ):
-                            object_expected_list.extend(chunk)
+                            data_expected_list.extend(chunk)
                     else:
                         if compression in ("tar.bz2", "tar.gz", "tgz", "tar.xz"):
                             if "." in compression:
@@ -1299,35 +1299,35 @@ class TestJson(unittest.TestCase):
                             else:
                                 mode = "r:gz"
 
-                            object_expected_list = []
+                            data_expected_list = []
                             for chunk in read_jsonl(
                                 filename=filepath,
                                 mode=mode,
                                 compression="tar",
                                 chunksize=chunksize,
                             ):
-                                object_expected_list.extend(chunk)
+                                data_expected_list.extend(chunk)
                         else:
-                            object_expected_list = []
+                            data_expected_list = []
                             for chunk in read_jsonl(
                                 filename=filepath,
                                 mode="r",
                                 compression=compression,
                                 chunksize=chunksize,
                             ):
-                                object_expected_list.extend(chunk)
+                                data_expected_list.extend(chunk)
 
-                    if isinstance(object_observed, list) & (
-                        not isinstance(object_expected, list)
+                    if isinstance(data_observed, list) & (
+                        not isinstance(data_expected, list)
                     ):
-                        object_observed = object_observed[0]
+                        data_observed = data_observed[0]
 
                     self.assertEqual(
-                        object_expected,
-                        object_observed,
+                        data_expected,
+                        data_observed,
                         "read_jsonl() failed.\n"
                         "Parameters:\n"
                         f"  compression: {compression}\n"
-                        f"Expected: '{object_expected}'\n"
-                        f"Observed: '{object_observed}'",
+                        f"Expected: '{data_expected}'\n"
+                        f"Observed: '{data_observed}'",
                     )
