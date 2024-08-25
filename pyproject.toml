@@ -19,6 +19,7 @@ yaml = ["pyyaml"]
 ipykernel = "^6.29.5"
 pytest = "^8.3.2"
 tox = "^4.18.0"
+black = "^24.8.0"
 
 [build-system]
 requires = ["poetry-core"]
