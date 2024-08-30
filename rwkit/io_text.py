@@ -28,8 +28,6 @@ def read_text(
             `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
             '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
             and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
-        chunksize (Optional[int], optional): If None, reads all lines at once. If
-            integer, reads the file in chunks of `chunksize` lines. Defaults to None.
 
     Raises:
         ValueError: If `mode` does not start with 'r'.
@@ -184,9 +182,9 @@ def read_lines(
             integer, reads the file in chunks of `chunksize` lines. Defaults to None.
 
     Returns:
-        List[str]: If `chunksize` is None, returns a list of strings. If `chunksize` is
-            an integer, returns a generator that yields lists of strings in chunks of
-            `chunksize`.
+        Union[List[str], Iterator[List[str]]]: If `chunksize` is None, returns a list of
+            strings. If `chunksize` is an integer, returns an iterator that yields lists
+            of strings in chunks of `chunksize`.
     """
     if chunksize is None:
         return read_text(filename, mode, compression).rstrip("\n").split("\n")
@@ -222,6 +220,9 @@ def write_lines(
     Raises:
         TypeError: If `lines` is not a string or list of strings.
         TypeError: If `lines` is a list with non-string elements.
+
+    Note:
+        A newline character is added after each line and at the end of the file.
     """
     # Checks
     if isinstance(lines, str):
