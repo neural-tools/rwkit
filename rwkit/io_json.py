@@ -98,6 +98,7 @@ def read_json(
     Raises:
         ValueError: If `chunksize` is not 1 or greater.
         ValueError: If `mode` does not start with 'r'.
+        ValueError: If `chunksize` is specified when `lines` is False.
 
     Returns:
         Any: If `lines` is False, returns a single JSON-serializable object. If `lines`
@@ -156,6 +157,9 @@ def write_json(
 
     Raises:
         ValueError: If `mode` does not start with 'w' or 'x'.
+
+    Note:
+        A newline character is added at the end of the JSON content.
     """
     # Check mode
     valid_modes = ("w", "x")
@@ -231,7 +235,7 @@ def write_jsonl(
 
     Args:
         filename (Union[str, Path]): File to write to.
-        data (Any): List of JSON-serializable objects to write.
+        data (Any): JSON-serializable object (or a list thereof) to write, one per line.
         mode (str, optional): File access mode. Defaults to 'w'.
         compression (Optional[str], optional): File compression. Valid options are
             'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
