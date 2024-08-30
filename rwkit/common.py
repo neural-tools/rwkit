@@ -38,11 +38,12 @@ def open_file(
     level: Optional[int] = None,
 ) -> Iterator[Tuple[ContainerType, IO, bool]]:
     """
-    Create file handle for reading or writing, optionally with compression.
+    Open a file with optional compression as a context manager.
 
     Args:
         filename (Union[str, Path]): File to open for reading or writing.
-        mode (str): File access mode.
+        mode (str): File access mode. For 'tar' compression, append mode ('a') is not
+            supported.
         compression (Optional[str], optional): File compression. Valid options are
             'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
             'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
@@ -54,20 +55,30 @@ def open_file(
             default will be used. Defaults to None.
 
     Yields:
-        Iterator[Tuple[ContainerType, IO, bool]]: Container handle, file handle, and
-            boolean indicating if file content is binary.
+        Iterator[Tuple[ContainerType, IO, bool]]: A tuple containing:
+            - ContainerType: The container handle (e.g., TarFile, ZipFile) if
+              applicable, else None.
+            - IO: The file handle for reading or writing.
+            - bool: A flag indicating whether the file content is binary (True) or text
+              (False).
 
     Raises:
         IsADirectoryError: If `filename` is a directory.
         FileNotFoundError: If `mode` is 'r' and the file does not exist.
-        ValueError: If `compression` is not supported.
+        ValueError: If `compression` is not supported or if 'tar' or 'zip' compression
+            is used with append mode.
         NotImplementedError: If `compression` is not implemented.
-        tarfile.ReadError: If `mode` is 'r' and file is not a tarfile.
-        ValueError: If `mode` is 'r' and file is not 1 file in the tar archive.
-        zipfile.BadZipFile: If `mode` is 'r' and file is not a zipfile.
-        ValueError: If `mode` is 'r' and file is not 1 file in the zip archive.
-        ModuleNotFoundError: If `compression` is 'zstd' and module zstandard is not
+        tarfile.ReadError: If `mode` is 'r' and file is not a valid tarfile.
+        ValueError: If `mode` is 'r' and the tar or zip archive does not contain exactly
+            1 file.
+        zipfile.BadZipFile: If `mode` is 'r' and file is not a valid zipfile.
+        ModuleNotFoundError: If `compression` is 'zstd' and the zstandard module is not
             installed.
+
+    Note:
+        This function returns a context manager and is best used with a 'with'
+        statement. The ContainerType in the returned tuple is defined as:
+        ContainerType = Optional[Union[object, "zstandard.ZstdCompressor"]]
     """
     # Check: `filename` cannot be a directory
     filepath = Path(filename)
