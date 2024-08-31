@@ -87,7 +87,7 @@ def open_file(
         raise IsADirectoryError("Must be a file, not a directory: '%s'" % filename)
 
     # Check if file exists when opening in read mode
-    if mode[0] == "r" and not filepath.is_file():
+    if mode.startswith("r") and not filepath.is_file():
         raise FileNotFoundError("No such file: '%s'" % filename)
 
     # Check compression
@@ -133,7 +133,7 @@ def open_file(
     elif (compression == "tar") & (len(mode) == 1):
         level = None
 
-    if mode[0] == "r":
+    if mode.startswith("r"):
         # Reading mode does not require a compression level
         level = None
 
@@ -150,7 +150,7 @@ def open_file(
 
         container_handle = tarfile.open(filename, **kwargs)
         try:
-            if mode[0] == "r":
+            if mode.startswith("r"):
                 if not tarfile.is_tarfile(filename):
                     raise tarfile.ReadError(filename)
 
@@ -158,9 +158,9 @@ def open_file(
                 if len(file_list) != 1:
                     raise ValueError("tar archive must contain exactly 1 file")
                 file_handle = container_handle.extractfile(file_list[0])
-            elif mode[0] in ("w", "x"):
+            elif mode.startswith(("w", "x")):
                 file_handle = tarfile.TarInfo(name="data")
-            elif mode[0] == "a":
+            elif mode.startswith("a"):
                 raise ValueError("tar does not support append mode")
 
             yield container_handle, file_handle, True

@@ -105,7 +105,7 @@ def write_yaml(
 
     # Check mode
     valid_modes = ("w", "x")
-    if mode[0] not in valid_modes:
+    if not mode.startswith(valid_modes):
         raise ValueError(
             "Unrecognized mode: %s\nValid modes start with: %s" % (mode, valid_modes)
         )

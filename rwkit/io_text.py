@@ -82,7 +82,7 @@ def write_text(
         raise TypeError("text must be a string. Use write_lines() for list of strings.")
 
     valid_modes = ("w", "x", "a")
-    if mode[0] not in valid_modes:
+    if not mode.startswith(valid_modes):
         raise ValueError(
             f"Unrecognized mode: {mode}\nValid modes start with: {valid_modes}"
         )
