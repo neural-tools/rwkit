@@ -35,7 +35,7 @@ def read_text(
         str: Content of file.
     """
     # Check mode
-    if not mode[0].startswith("r"):
+    if not mode.startswith("r"):
         raise ValueError("Unrecognized mode: %s\nValid modes start with: 'r'" % mode)
 
     with open_file(filename, mode, compression) as (_, file_handle, is_binary):
