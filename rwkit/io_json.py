@@ -11,65 +11,6 @@ from typing import Any, Generator, List, Optional, Union
 from .common import open_file
 
 
-def _read_jsonl_generator(
-    filename: Union[str, Path],
-    mode: str = "r",
-    compression: Optional[str] = "infer",
-    chunksize: int = 1,
-) -> Generator[List[Any], Any, None]:
-    """
-    Generator that reads a JSON Lines file in chunks.
-
-    Args:
-        filename (Union[str, Path]): File to read.
-        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
-        compression (Optional[str], optional): File compression method. Options: 'bz2',
-            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
-            'infer' for automatic detection based on file extension. For tar archives,
-            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
-            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
-            Defaults to 'infer'.
-        chunksize (int, optional): Number of JSON-serializable objects (= lines) to read
-            as a chunk. Defaults to 1.
-
-    Raises:
-        ValueError: If `mode` does not start with 'r'.
-        ValueError: If `chunksize` is not 1 or greater.
-
-    Yields:
-        Generator[List[Any], Any, None]: Lists of JSON-serializable objects.
-    """
-    # Check mode
-    if not mode.startswith("r"):
-        raise ValueError("Unrecognized mode: %s\nValid modes start with: r" % mode)
-
-    # Check chunksize
-    if chunksize < 1:
-        raise ValueError("chunksize must be 1 or greater")
-
-    with open_file(filename, mode, compression) as (_, file_handle, is_content_binary):
-        chunk: List[Any] = []
-        counter = 0
-        for line in file_handle:
-            if is_content_binary:
-                line = line.decode()
-
-            chunk.append(json.loads(line))
-            counter += 1
-
-            # Once `chunksize` is reached, yield `chunk`
-            if counter == chunksize:
-                yield chunk
-
-                # Empty list, reset counter
-                chunk = []
-                counter = 0
-
-        # If `chunk` contains items after all lines have been read, yield it
-        if counter > 0:
-            yield chunk
-
-
 def read_json(
     filename: Union[str, Path],
     mode: str = "r",
@@ -162,6 +103,65 @@ def write_json(
             container_handle.addfile(file_handle, fileobj=BytesIO(content))
         else:
             file_handle.write(content)
+
+
+def _read_jsonl_generator(
+    filename: Union[str, Path],
+    mode: str = "r",
+    compression: Optional[str] = "infer",
+    chunksize: int = 1,
+) -> Generator[List[Any], Any, None]:
+    """
+    Generator that reads a JSON Lines file in chunks.
+
+    Args:
+        filename (Union[str, Path]): File to read.
+        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
+            Defaults to 'infer'.
+        chunksize (int, optional): Number of JSON-serializable objects (= lines) to read
+            as a chunk. Defaults to 1.
+
+    Raises:
+        ValueError: If `mode` does not start with 'r'.
+        ValueError: If `chunksize` is not 1 or greater.
+
+    Yields:
+        Generator[List[Any], Any, None]: Lists of JSON-serializable objects.
+    """
+    # Check mode
+    if not mode.startswith("r"):
+        raise ValueError("Unrecognized mode: %s\nValid modes start with: r" % mode)
+
+    # Check chunksize
+    if chunksize < 1:
+        raise ValueError("chunksize must be 1 or greater")
+
+    with open_file(filename, mode, compression) as (_, file_handle, is_content_binary):
+        chunk: List[Any] = []
+        counter = 0
+        for line in file_handle:
+            if is_content_binary:
+                line = line.decode()
+
+            chunk.append(json.loads(line))
+            counter += 1
+
+            # Once `chunksize` is reached, yield `chunk`
+            if counter == chunksize:
+                yield chunk
+
+                # Empty list, reset counter
+                chunk = []
+                counter = 0
+
+        # If `chunk` contains items after all lines have been read, yield it
+        if counter > 0:
+            yield chunk
 
 
 def read_jsonl(
