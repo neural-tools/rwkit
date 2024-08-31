@@ -16,6 +16,16 @@ Install `rwkit` using pip:
 pip install rwkit
 ```
 
+### Optional Dependencies
+
+`rwkit` comes with optional features that you can install based on your needs:
+
+```bash
+pip install rwkit[zstd]  # For Zstandard compression support
+pip install rwkit[yaml]  # For YAML file handling
+pip install rwkit[all]   # For all optional features
+```
+
 ## Quick Start
 
 Here are some examples to get you started:
