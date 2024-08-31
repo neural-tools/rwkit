@@ -40,7 +40,7 @@ def _read_jsonl_generator(
         Generator[List[Any], Any, None]: Lists of JSON-serializable objects.
     """
     # Check mode
-    if not mode[0].startswith("r"):
+    if not mode.startswith("r"):
         raise ValueError("Unrecognized mode: %s\nValid modes start with: r" % mode)
 
     # Check chunksize
@@ -74,8 +74,6 @@ def read_json(
     filename: Union[str, Path],
     mode: str = "r",
     compression: Optional[str] = "infer",
-    lines: bool = False,
-    chunksize: Optional[int] = None,
 ) -> Any:
     """
     Read a JSON file.
@@ -89,42 +87,24 @@ def read_json(
             use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
             '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
             Defaults to 'infer'.
-        lines (bool, optional): If True, returns a list of JSON-serializable objects
-            (1 per line). Defaults to False.
-        chunksize (Optional[int], optional): If None, reads all lines at once. If
-            integer, reads the file in chunks of `chunksize` lines. Only valid if
-            `lines` is True. Defaults to None.
 
     Raises:
-        ValueError: If `chunksize` is not 1 or greater.
         ValueError: If `mode` does not start with 'r'.
-        ValueError: If `chunksize` is specified when `lines` is False.
 
     Returns:
-        Any: If `lines` is False, returns a single JSON-serializable object. If `lines`
-            is True, returns a list of JSON-serializable objects (1 per line).
-            Additionally, if `chunksize` is None, returns all JSON-serializable objects
-            at once. If `chunksize` is an integer, returns a generator that yields lists
-            of JSON-serializable objects in chunks of `chunksize`.
+        Any: A single JSON-serializable object.
     """
     # Check mode
-    if not mode[0].startswith("r"):
-        raise ValueError("Unrecognized mode: %s\nValid modes start with: r" % mode)
+    if not mode.startswith("r"):
+        raise ValueError("Unrecognized mode: %s\nValid modes start with: 'r'" % mode)
 
-    if chunksize is None:
-        with open_file(filename, mode, compression) as (_, file_handle, is_binary):
-            content = file_handle.read()
+    with open_file(filename, mode, compression) as (_, file_handle, is_binary):
+        content = file_handle.read()
 
-            if is_binary:
-                content = content.decode()
+        if is_binary:
+            content = content.decode()
 
-            if lines:
-                return [json.loads(line) for line in content.rstrip("\n").split("\n")]
-            return json.loads(content)
-    else:
-        if not lines:
-            raise ValueError("Specifying chunksize is only valid when lines=True")
-        return _read_jsonl_generator(filename, mode, compression, chunksize)
+        return json.loads(content)
 
 
 def write_json(
@@ -133,7 +113,6 @@ def write_json(
     mode: str = "w",
     compression: Optional[str] = "infer",
     level: Optional[int] = None,
-    lines: bool = False,
 ) -> None:
     """
     Write a JSON-serializable object to a file.
@@ -153,8 +132,6 @@ def write_json(
             is not None. Valid values depend on the compression method, typically
             ranging from 0 (no compression) to 9 (highest compression). If None, the
             default level for each compression method is used. Defaults to None.
-        lines (bool, optional): If False, write a single JSON-serializable object. If
-            True, write 1 JSON-serializable object per line. Defaults to False.
 
     Raises:
         ValueError: If `mode` does not start with 'w' or 'x'.
@@ -164,7 +141,7 @@ def write_json(
     """
     # Check mode
     valid_modes = ("w", "x")
-    if mode[0] not in valid_modes:
+    if not mode.startswith(valid_modes):
         raise ValueError(
             "Unrecognized mode: %s\nValid modes start with: %s" % (mode, valid_modes)
         )
@@ -174,14 +151,7 @@ def write_json(
         file_handle,
         is_binary,
     ):
-        if lines:
-            if isinstance(data, list):
-                data_serialized = [json.dumps(item) for item in data]
-            else:
-                data_serialized = [json.dumps(data)]
-            content = "\n".join(data_serialized) + "\n"
-        else:
-            content = json.dumps(data) + "\n"
+        content = json.dumps(data) + "\n"
 
         if is_binary:
             content = content.encode()
@@ -199,7 +169,7 @@ def read_jsonl(
     mode: str = "r",
     compression: Optional[str] = "infer",
     chunksize: Optional[int] = None,
-) -> List[Any]:
+) -> Union[List[Any], Generator[List[Any], None, None]]:
     """
     Read JSON Lines file.
 
@@ -216,17 +186,35 @@ def read_jsonl(
             objects (= lines) at once. If integer, reads the file in chunks of
             `chunksize`. Defaults to None.
 
+    Raises:
+        ValueError: If `mode` does not start with 'r'.
+        ValueError: If `chunksize` is not None and less than 1.
+
     Returns:
-        List[Any]: If `chunksize` is None, returns a list of JSON-serializable objects.
-            If `chunksize` is an integer, returns a generator that yields lists of
-            JSON-serializable objects in chunks of `chunksize`.
+        Union[List[Any], Generator[List[Any], None, None]]: If `chunksize` is None,
+            returns a list of JSON-serializable objects. If `chunksize` is an integer,
+            returns a generator that yields lists of JSON-serializable objects in chunks
+            of `chunksize`.
     """
-    return read_json(filename, mode, compression, lines=True, chunksize=chunksize)
+    # Check mode
+    if not mode.startswith("r"):
+        raise ValueError("Unrecognized mode: %s\nValid modes start with: r" % mode)
+
+    if chunksize is None:
+        with open_file(filename, mode, compression) as (_, file_handle, is_binary):
+            content = file_handle.read()
+
+            if is_binary:
+                content = content.decode()
+
+            return [json.loads(line) for line in content.rstrip("\n").split("\n")]
+
+    return _read_jsonl_generator(filename, mode, compression, chunksize)
 
 
 def write_jsonl(
     filename: Union[str, Path],
-    data: Any,
+    data: Union[Any, List[Any]],
     mode: str = "w",
     compression: Optional[str] = "infer",
     level: Optional[int] = None,
@@ -236,9 +224,10 @@ def write_jsonl(
 
     Args:
         filename (Union[str, Path]): File to write to.
-        data (Any): JSON-serializable object (or a list thereof) to write, one per line.
-        mode (str, optional): File access mode. Must start with 'w' or 'x'. Defaults to
-            'w'.
+        data (Union[Any, List[Any]]): JSON-serializable object (or a list thereof) to
+            write, one per line.
+        mode (str, optional): File access mode. Must start with 'w', 'x', or 'a'.
+            Defaults to 'w'.
         compression (Optional[str], optional): File compression method. Options: 'bz2',
             'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
             'infer' for automatic detection based on file extension. For tar archives,
@@ -249,5 +238,34 @@ def write_jsonl(
             is not None. Valid values depend on the compression method, typically
             ranging from 0 (no compression) to 9 (highest compression). If None, the
             default level for each compression method is used. Defaults to None.
+
+    Raises:
+        ValueError: If `mode` does not start with 'w', 'x', or 'a'.
     """
-    write_json(filename, data, mode, compression, level, lines=True)
+    # Check mode
+    valid_modes = ("w", "x", "a")
+    if not mode.startswith(valid_modes):
+        raise ValueError(
+            "Unrecognized mode: %s\nValid modes start with: %s" % (mode, valid_modes)
+        )
+
+    with open_file(filename, mode, compression, level) as (
+        container_handle,
+        file_handle,
+        is_binary,
+    ):
+        if isinstance(data, list):
+            data_serialized = [json.dumps(item) for item in data]
+        else:
+            data_serialized = [json.dumps(data)]
+        content = "\n".join(data_serialized) + "\n"
+
+        if is_binary:
+            content = content.encode()
+
+        # Write out
+        if isinstance(file_handle, tarfile.TarInfo):
+            file_handle.size = len(content)
+            container_handle.addfile(file_handle, fileobj=BytesIO(content))
+        else:
+            file_handle.write(content)
