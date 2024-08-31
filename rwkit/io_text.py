@@ -20,16 +20,13 @@ def read_text(
 
     Args:
         filename (Union[str, Path]): File to read.
-        mode (str, optional): File access mode. Valid modes start with 'r'. Defaults
-            to 'r'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
-        chunksize (Optional[int], optional): If None, reads all lines at once. If
-            integer, reads the file in chunks of `chunksize` lines. Defaults to None.
+        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
+            Defaults to 'infer'.
 
     Raises:
         ValueError: If `mode` does not start with 'r'.
@@ -38,7 +35,7 @@ def read_text(
         str: Content of file.
     """
     # Check mode
-    if not mode[0].startswith("r"):
+    if not mode.startswith("r"):
         raise ValueError("Unrecognized mode: %s\nValid modes start with: 'r'" % mode)
 
     with open_file(filename, mode, compression) as (_, file_handle, is_binary):
@@ -63,17 +60,18 @@ def write_text(
     Args:
         filename (Union[str, Path]): File to write to.
         text (str): String to write.
-        mode (str, optional): File access mode. Valid modes start with 'w', 'x', or 'a'.
+        mode (str, optional): File access mode. Must start with 'w', 'x', or 'a'.
             Defaults to 'w'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to 'infer'.
-        level (Optional[int], optional): Compression level. Only in effect if
-            `compression` is not None. If `level` is None, each compression method's
-            default will be used. Defaults to None.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` ending in ':bz2', ':gz', or ':xz'.
+            Defaults to 'infer'.
+        level (Optional[int], optional): Compression level. Only used if `compression`
+            is not None. Valid values depend on the compression method, typically
+            ranging from 0 (no compression) to 9 (highest compression). If None, the
+            default level for each compression method is used. Defaults to None.
 
     Raises:
         TypeError: If `text` is not a string.
@@ -84,7 +82,7 @@ def write_text(
         raise TypeError("text must be a string. Use write_lines() for list of strings.")
 
     valid_modes = ("w", "x", "a")
-    if mode[0] not in valid_modes:
+    if not mode.startswith(valid_modes):
         raise ValueError(
             f"Unrecognized mode: {mode}\nValid modes start with: {valid_modes}"
         )
@@ -115,14 +113,13 @@ def _read_lines_generator(
 
     Args:
         filename (Union[str, Path]): File to read.
-        mode (str, optional): File access mode. Valid modes start with 'r'. Defaults
-            to 'r'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
+        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
+            Defaults to 'infer'.
         chunksize (int, optional): The number of lines to read at once. Defaults to 1.
 
     Raises:
@@ -133,7 +130,7 @@ def _read_lines_generator(
         Generator[List[str], Any, None]: A list of lines from the file.
     """
     # Checks
-    if not mode[0].startswith("r"):
+    if not mode.startswith("r"):
         raise ValueError("Unrecognized mode: %s\nValid modes start with: 'r'" % mode)
 
     if not (chunksize >= 1):
@@ -173,20 +170,20 @@ def read_lines(
 
     Args:
         filename (Union[str, Path]): File to read.
-        mode (str, optional): File access mode. Defaults to 'r'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
+        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
+            Defaults to 'infer'.
         chunksize (Optional[int], optional): If None, reads all lines at once. If
             integer, reads the file in chunks of `chunksize` lines. Defaults to None.
 
     Returns:
-        List[str]: If `chunksize` is None, returns a list of strings. If `chunksize` is
-            an integer, returns a generator that yields lists of strings in chunks of
-            `chunksize`.
+        Union[List[str], Iterator[List[str]]]: If `chunksize` is None, returns a list of
+            strings. If `chunksize` is an integer, returns an iterator that yields lists
+            of strings in chunks of `chunksize`.
     """
     if chunksize is None:
         return read_text(filename, mode, compression).rstrip("\n").split("\n")
@@ -207,21 +204,25 @@ def write_lines(
     Args:
         filename (Union[str, Path]): File to write to.
         lines (Union[str, List[str]]): String or list of strings to write.
-        mode (str, optional): File access mode. Valid modes start with 'w', 'x', or 'a'.
+        mode (str, optional): File access mode. Must start with 'w', 'x', or 'a'.
             Defaults to 'w'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to 'infer'.
-        level (Optional[int], optional): Compression level. Only in effect if
-            `compression` is not None. If `level` is None, each compression method's
-            default will be used. Defaults to None.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` ending in ':bz2', ':gz', or ':xz'.
+            Defaults to 'infer'.
+        level (Optional[int], optional): Compression level. Only used if `compression`
+            is not None. Valid values depend on the compression method, typically
+            ranging from 0 (no compression) to 9 (highest compression). If None, the
+            default level for each compression method is used. Defaults to None.
 
     Raises:
         TypeError: If `lines` is not a string or list of strings.
         TypeError: If `lines` is a list with non-string elements.
+
+    Note:
+        A newline character is added after each line and at the end of the file.
     """
     # Checks
     if isinstance(lines, str):

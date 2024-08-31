@@ -1,10 +1,12 @@
 [tool.poetry]
 name = "rwkit"
-version = "1.0.2"
-description = ""
+version = "2.0.0"
+description = "Simplified reading & writing files with support for compression"
 authors = ["David Adametz <20501597+david-adametz@users.noreply.github.com>"]
 repository = "https://github.com/neural-tools/rwkit"
 readme = "README.md"
+license = "Apache-2.0"
+keywords = ["io", "compression", "json", "jsonl", "yaml"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
