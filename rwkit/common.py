@@ -42,17 +42,18 @@ def open_file(
 
     Args:
         filename (Union[str, Path]): File to open for reading or writing.
-        mode (str): File access mode. For 'tar' compression, append mode ('a') is not
-            supported.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to None.
-        level (Optional[int], optional): Compression level. Only in effect if
-            `compression` is not None. If `level` is None, each compression method's
-            default will be used. Defaults to None.
+        mode (str): File access mode. For 'tar' and 'zip' compression, append mode ('a')
+            is not supported.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` ending in ':bz2', ':gz', or ':xz'.
+            Defaults to 'infer'.
+        level (Optional[int], optional): Compression level. Only used if `compression`
+            is not None. Valid values depend on the compression method, typically
+            ranging from 0 (no compression) to 9 (highest compression). If None, the
+            default level for each compression method is used. Defaults to None.
 
     Yields:
         Iterator[Tuple[ContainerType, IO, bool]]: A tuple containing:

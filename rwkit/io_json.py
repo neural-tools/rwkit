@@ -22,13 +22,13 @@ def _read_jsonl_generator(
 
     Args:
         filename (Union[str, Path]): File to read.
-        mode (str, optional): File access mode. Defaults to 'r'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
+        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
+            Defaults to 'infer'.
         chunksize (int, optional): Number of JSON-serializable objects (= lines) to read
             as a chunk. Defaults to 1.
 
@@ -82,13 +82,13 @@ def read_json(
 
     Args:
         filename (Union[str, Path]): File to read.
-        mode (str, optional): File access mode. Defaults to 'r'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
+        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
+            Defaults to 'infer'.
         lines (bool, optional): If True, returns a list of JSON-serializable objects
             (1 per line). Defaults to False.
         chunksize (Optional[int], optional): If None, reads all lines at once. If
@@ -141,17 +141,18 @@ def write_json(
     Args:
         filename (Union[str, Path]): File to write to.
         data (Any): JSON-serializable object to write to file.
-        mode (str, optional): File access mode. Valid options are 'w' or 'x'.
-            Defaults to 'w'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to 'infer'.
-        level (Optional[int], optional): Compression level. Only in effect if
-            `compression` is not None. If `level` is None, each compression method's
-            default will be used. Defaults to None.
+        mode (str, optional): File access mode. Must start with 'w' or 'x'. Defaults to
+            'w'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` ending in ':bz2', ':gz', or ':xz'.
+            Defaults to 'infer'.
+        level (Optional[int], optional): Compression level. Only used if `compression`
+            is not None. Valid values depend on the compression method, typically
+            ranging from 0 (no compression) to 9 (highest compression). If None, the
+            default level for each compression method is used. Defaults to None.
         lines (bool, optional): If False, write a single JSON-serializable object. If
             True, write 1 JSON-serializable object per line. Defaults to False.
 
@@ -204,13 +205,13 @@ def read_jsonl(
 
     Args:
         filename (Union[str, Path]): Path to file.
-        mode (str, optional): File access mode. Defaults to 'r'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
+        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
+            Defaults to 'infer'.
         chunksize (Optional[int], optional): If None, reads all JSON-serializable
             objects (= lines) at once. If integer, reads the file in chunks of
             `chunksize`. Defaults to None.
@@ -236,15 +237,17 @@ def write_jsonl(
     Args:
         filename (Union[str, Path]): File to write to.
         data (Any): JSON-serializable object (or a list thereof) to write, one per line.
-        mode (str, optional): File access mode. Defaults to 'w'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to 'infer'.
-        level (Optional[int], optional): Compression level. Only in effect if
-            `compression` is not None. If `level` is None, each compression method's
-            default will be used. Defaults to None.
+        mode (str, optional): File access mode. Must start with 'w' or 'x'. Defaults to
+            'w'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` ending in ':bz2', ':gz', or ':xz'.
+            Defaults to 'infer'.
+        level (Optional[int], optional): Compression level. Only used if `compression`
+            is not None. Valid values depend on the compression method, typically
+            ranging from 0 (no compression) to 9 (highest compression). If None, the
+            default level for each compression method is used. Defaults to None.
     """
     write_json(filename, data, mode, compression, level, lines=True)
