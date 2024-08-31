@@ -27,20 +27,24 @@ def read_yaml(
 
     Args:
         filename (Union[str, Path]): File to read.
-        mode (str, optional): File access mode. Defaults to 'r'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` 'r:bz2', 'r:gz' or 'r:xz'. Defaults to 'infer'.
+        mode (str, optional): File access mode. Must start with 'r'. Defaults to 'r'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` set to 'r:bz2', 'r:gz', or 'r:xz'.
+            Defaults to 'infer'.
 
     Raises:
         ModuleNotFoundError: If package 'pyyaml' is not installed.
         ValueError: If `mode` does not start with 'r'.
 
     Returns:
-        Any: YAML-serializable object read from file.
+        Any: The parsed YAML content as a Python object.
+
+    Note:
+        This function uses yaml.safe_load() internally, which may raise yaml.YAMLError
+        if there's an issue parsing the YAML content.
     """
     if not _HAVE_YAML:
         raise ModuleNotFoundError(
@@ -73,20 +77,26 @@ def write_yaml(
     Args:
         filename (Union[str, Path]): File to write to.
         data (Any): YAML-serializable object to write.
-        mode (str, optional): File access mode. Defaults to 'w'.
-        compression (Optional[str], optional): File compression. Valid options are
-            'bz2', 'gzip', 'tar', 'xz', 'zip', 'zstd', None (= no compression) or
-            'infer'. For 'tar.bz2', 'tar.gz', 'tgz' or 'tar.xz', use
-            `compression='infer'` and a `filename` ending in '.tar.bz2', '.tar.gz',
-            '.tgz' or '.tar.xz', respectively. Alternatively, use `compression='tar'`
-            and `mode` ending in ':bz2', ':gz' or ':xz'. Defaults to 'infer'.
-        level (Optional[int], optional): Compression level. Only in effect if
-            `compression` is not None. If `level` is None, each compression method's
-            default will be used. Defaults to None.
+        mode (str, optional): File access mode. Must start with 'w' or 'x'. Defaults to
+            'w'.
+        compression (Optional[str], optional): File compression method. Options: 'bz2',
+            'gzip', 'tar', 'xz', 'zip', 'zstd', None (no compression), or 'infer'. Use
+            'infer' for automatic detection based on file extension. For tar archives,
+            use 'infer' with appropriate file extensions ('.tar.bz2', '.tar.gz', '.tgz',
+            '.tar.xz') or use 'tar' with `mode` ending in ':bz2', ':gz', or ':xz'.
+            Defaults to 'infer'.
+        level (Optional[int], optional): Compression level. Only used if `compression`
+            is not None. Valid values depend on the compression method, typically
+            ranging from 0 (no compression) to 9 (highest compression). If None, the
+            default level for each compression method is used. Defaults to None.
 
     Raises:
         ModuleNotFoundError: If package 'pyyaml' is not installed.
         ValueError: If `mode` does not start with 'w' or 'x'.
+
+    Note:
+        The YAML content is dumped with `sort_keys=False`, preserving the original order
+        of keys in dictionaries.
     """
     if not _HAVE_YAML:
         raise ModuleNotFoundError(
