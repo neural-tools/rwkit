@@ -130,7 +130,7 @@ def _read_lines_generator(
         Generator[List[str], Any, None]: A list of lines from the file.
     """
     # Checks
-    if not mode[0].startswith("r"):
+    if not mode.startswith("r"):
         raise ValueError("Unrecognized mode: %s\nValid modes start with: 'r'" % mode)
 
     if not (chunksize >= 1):
